@@ -1,4 +1,4 @@
-import { ddbClient } from "./ddbClient";
+import ddbClient from "./ddbClient.js";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import {
   GetItemCommand,
@@ -8,7 +8,7 @@ import {
   UpdateItemCommand,
   QueryCommand,
 } from "@aws-sdk/client-dynamodb";
-import { uuidv4 } from "uuid";
+import { v4 as uuid } from "uuid";
 
 export const handler = async function (event) {
   console.log("request:", JSON.stringify(event, undefined, 2));
@@ -18,11 +18,14 @@ export const handler = async function (event) {
       case "GET":
         if (event.queryStringParameters != null) {
           body = await getProductsByCategory(event);
+          break;
         }
         if (event.pathParameters != null) {
           body = await getProduct(event.pathParameters.id);
+          break;
         } else {
           body = await getAllProducts();
+          break;
         }
       case "POST":
         body = await createProduct(event);
@@ -32,6 +35,7 @@ export const handler = async function (event) {
         break;
       case "PUT":
         body = await updateProduct(event);
+        break;
       default:
         throw new Error(`Unsupported route: "${event.httpMethod}"`);
     }
@@ -50,8 +54,8 @@ export const handler = async function (event) {
       statusCode: 500,
       body: JSON.stringify({
         message: "Failed to perform operation.",
-        errorMsg: e.message,
-        errStack: e.stack,
+        errorMsg: error.message,
+        errStack: error.stack,
       }),
     };
   }
@@ -69,8 +73,8 @@ const getProduct = async (productId) => {
     console.log(Item);
     return Item ? unmarshall(Item) : {};
   } catch (error) {
-    console.error(e);
-    throw e;
+    console.error(error);
+    throw error;
   }
 };
 
@@ -121,7 +125,7 @@ const createProduct = async (event) => {
     console.log(`createProduct funtion. event : "${event}"`);
 
     const productRequest = JSON.parse(event.body);
-    const productId = uuidv4();
+    const productId = uuid();
     productRequest.id = productId;
 
     const params = {
@@ -132,13 +136,13 @@ const createProduct = async (event) => {
     const createResult = await ddbClient.send(new PutItemCommand(params));
     console.log(createResult);
     return createResult;
-  } catch (e) {
-    console.error(e);
-    throw e;
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
 };
 
-const deleteProduct = async (event) => {
+const deleteProduct = async (productId) => {
   try {
     console.log(`Delete product. productId: "${productId}"`);
 
@@ -191,8 +195,8 @@ const updateProduct = async (event) => {
     const updateResult = await ddbClient.send(new UpdateItemCommand(params));
     console.log(updateResult);
     return updateResult;
-  } catch (e) {
-    console.error(e);
-    throw e;
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
 };

@@ -1,4 +1,4 @@
-import { DynamoDBCLient } from "@aws-sdk/client-dynamodb";
-const REGION = "use-east-2";
-const ddbClient = new DynamoDBCLient({ region: REGION });
-export { ddbClient };
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+const REGION = "us-east-2";
+const ddbClient = new DynamoDBClient({ region: REGION });
+export default ddbClient;
